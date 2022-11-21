@@ -79,7 +79,7 @@ export function Editor() {
 
         let changes = Automerge.getChanges(doc, newDoc)
         if(!client)
-            client = client = new Client(docId, doc);
+            client = client = new Client(docId, newDoc);
         client.localChange(newDoc)
     };
 
