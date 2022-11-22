@@ -2,20 +2,21 @@ import events from 'events';
 import { createHash } from 'crypto';
 import * as Automerge from "@automerge/automerge";
 
+type D = { 
+  text: Automerge.Text
+}
 export default class Client<T> extends events.EventEmitter {
   open: boolean = false;
   syncState: Automerge.SyncState;
   client: WebSocket;
   documentId: string;
-  document: Automerge.Doc<T>
+  document: Automerge.Doc<D>
 
-  constructor(documentId: string, document: Automerge.Doc<T>) {
+  constructor(initDoc: Automerge.Doc<D>) {
     super()
-    if (!document) throw new Error('document required')
-    this.document = document;
-
     this.syncState = Automerge.initSyncState()
     this.client = this._createClient()
+    this.document = initDoc
   }
 
   _createClient(): WebSocket {
@@ -47,14 +48,13 @@ export default class Client<T> extends events.EventEmitter {
       let msg = new Uint8Array(e.data);
       //@ts-ignore
       let [ newDoc, newSyncState,  ] = Automerge.receiveSyncMessage(this.document, this.syncState, msg)
-      this.document = newDoc;
       this.syncState = newSyncState;
       this.updatePeers(newDoc)
     }; 
     return this.client;
   }
 
-  localChange(newDoc: Automerge.Doc<T>) {
+  localChange(newDoc: Automerge.Doc<D>) {
     if (!this.open) {
       this.once('open', () => this.updatePeers(newDoc))
       return
@@ -62,7 +62,7 @@ export default class Client<T> extends events.EventEmitter {
     this.updatePeers(newDoc)
   }
 
-  updatePeers(newDoc: Automerge.Doc<T>) {
+  updatePeers(newDoc: Automerge.Doc<D>) {
     let [nextSyncState, msg] = Automerge.generateSyncMessage(
       newDoc,
       this.syncState

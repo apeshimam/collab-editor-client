@@ -30,7 +30,6 @@ type D = {
 export function Editor() {
     const [doc, setDoc] = useState<null|Automerge.Doc<D>>(null);
     let docId = window.location.hash.replace(/^#/, '')
-    let channel = new BroadcastChannel(docId)
     let client: Client<D>
 
     useEffect(()=>{
@@ -46,7 +45,7 @@ export function Editor() {
             })
         }    
             setDoc(doc);
-            client = new Client(docId, doc);
+            client = new Client(doc)
         }
         setUp()
     }, [])
@@ -76,11 +75,7 @@ export function Editor() {
         let binary = Automerge.save(newDoc)
         setDoc(newDoc)
         localforage.setItem(docId, binary).then(_ => console.log("success!")).catch(e => console.log(e))  
-
-        let changes = Automerge.getChanges(doc, newDoc)
-        if(!client)
-            client = client = new Client(docId, newDoc);
-        client.updatePeers(newDoc)
+        client.localChange(newDoc)
     };
 
     return (
