@@ -55,8 +55,6 @@ export default class Client<T> extends events.EventEmitter {
   }
 
   localChange(newDoc: Automerge.Doc<T>) {
-    debugger
-    this.document = newDoc
     if (!this.open) {
       this.once('open', () => this.updatePeers(newDoc))
       return

@@ -4,8 +4,8 @@ import * as monaco from 'monaco-editor';
 import { MonacoServices } from "monaco-languageclient";
 import * as Automerge from "@automerge/automerge";
 import localforage, * as LocalForage from "localforage";
-import Client
- from "../../WebSocketClient";
+import Client from "../../WebSocketClient";
+
 const MONACO_OPTIONS: monaco.editor.IEditorConstructionOptions = {
     autoIndent: "full",
     automaticLayout: true,
@@ -80,7 +80,7 @@ export function Editor() {
         let changes = Automerge.getChanges(doc, newDoc)
         if(!client)
             client = client = new Client(docId, newDoc);
-        client.localChange(newDoc)
+        client.updatePeers(newDoc)
     };
 
     return (
