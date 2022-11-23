@@ -11,12 +11,14 @@ export default class Client<T> extends events.EventEmitter {
   client: WebSocket;
   documentId: string;
   document: Automerge.Doc<D>
+  cb: Function
 
-  constructor(initDoc: Automerge.Doc<D>) {
+  constructor(doc: Automerge.Doc<D>, cb: Function) {
     super()
     this.syncState = Automerge.initSyncState()
     this.client = this._createClient()
-    this.document = initDoc
+    this.document = doc
+    this.cb = cb
   }
 
   _createClient(): WebSocket {
@@ -48,8 +50,10 @@ export default class Client<T> extends events.EventEmitter {
       let msg = new Uint8Array(e.data);
       //@ts-ignore
       let [ newDoc, newSyncState,  ] = Automerge.receiveSyncMessage(this.document, this.syncState, msg)
+      this.document = newDoc
       this.syncState = newSyncState;
       this.updatePeers(newDoc)
+      this.cb(newDoc)
     }; 
     return this.client;
   }

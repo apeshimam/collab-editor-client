@@ -3,8 +3,10 @@ import MonacoEditor, { EditorDidMount } from "react-monaco-editor";
 import * as monaco from 'monaco-editor';
 import { MonacoServices } from "monaco-languageclient";
 import * as Automerge from "@automerge/automerge";
-import localforage, * as LocalForage from "localforage";
+import localforage from "localforage";
+import * as LocalForage from "localforage";
 import Client from "../../WebSocketClient";
+
 
 const MONACO_OPTIONS: monaco.editor.IEditorConstructionOptions = {
     autoIndent: "full",
@@ -45,7 +47,7 @@ export function Editor() {
             })
         }    
             setDoc(doc);
-            client = new Client(doc)
+            client = new Client(doc, this.remoteChange)
         }
         setUp()
     }, [])
@@ -74,9 +76,15 @@ export function Editor() {
         })
         let binary = Automerge.save(newDoc)
         setDoc(newDoc)
-        localforage.setItem(docId, binary).then(_ => console.log("success!")).catch(e => console.log(e))  
+        localforage.setItem(docId, binary)  
         client.localChange(newDoc)
     };
+
+    const remoteChange = (doc: Automerge.Doc<D>) => {
+        setDoc(doc)
+        let binary = Automerge.save(doc)
+        localforage.setItem(docId, binary)   
+    }
 
     return (
         <div>
@@ -97,3 +105,39 @@ export function Editor() {
         </div>
     );
 }
+
+// class EditorState extends events.EventEmitter {
+//     client: Client<D> | undefined
+//     watcher: Function | undefined
+
+//     constructor() {
+//         super()
+//         this.onDocumentChanged = this.onDocumentChanged.bind(this)
+//     }
+
+//     load(doc: Automerge.Doc<D>) {
+//         if (this.client) {
+//           this.client.close()
+//         }
+    
+//         let observable = new Automerge.Observable()
+//         chat.load(roomName, { observable }).then((room: chat.Room) => {
+//           this.client = new Client<chat.Room>(roomName, room)
+//           observable.observe(room, this.onDocumentChanged)
+//           if (this.watcher) this.watcher(room.messages)
+//           cb()
+//         })
+//       }
+
+//     onDocumentChanged(after: Automerge.Doc<D>)  {
+//         if(this.watcher)
+//             this.watcher(after)
+        
+//     }
+
+//     sendUpdate(doc: Automerge.Doc<D>) {
+//         this.client.localChange(doc)
+//     }
+
+
+// }
