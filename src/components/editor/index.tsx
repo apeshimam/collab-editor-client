@@ -47,7 +47,7 @@ export function Editor() {
             })
         }    
             setDoc(doc);
-            client = new Client(doc, this.remoteChange)
+            client = new Client(doc, remoteChange)
         }
         setUp()
     }, [])
@@ -80,7 +80,7 @@ export function Editor() {
         client.localChange(newDoc)
     };
 
-    const remoteChange = (doc: Automerge.Doc<D>) => {
+    function remoteChange(doc: Automerge.Doc.<D>) {
         setDoc(doc)
         let binary = Automerge.save(doc)
         localforage.setItem(docId, binary)   
