@@ -46,6 +46,8 @@ export default class Client<T> extends events.EventEmitter {
     };
 
     this.client.onmessage = (e) => {
+      debugger
+      console.log('received event', e)
       //@ts-ignore
       let msg = new Uint8Array(e.data);
       //@ts-ignore
@@ -59,6 +61,7 @@ export default class Client<T> extends events.EventEmitter {
   }
 
   localChange(newDoc: Automerge.Doc<D>) {
+    this.document = newDoc
     if (!this.open) {
       this.once('open', () => this.updatePeers(newDoc))
       return

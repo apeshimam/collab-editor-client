@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useRef} from "react";
 import MonacoEditor, { EditorDidMount } from "react-monaco-editor";
 import * as monaco from 'monaco-editor';
 import { MonacoServices } from "monaco-languageclient";
@@ -6,6 +6,7 @@ import * as Automerge from "@automerge/automerge";
 import localforage from "localforage";
 import * as LocalForage from "localforage";
 import Client from "../../WebSocketClient";
+import { editor } from "monaco-editor-core";
 
 
 const MONACO_OPTIONS: monaco.editor.IEditorConstructionOptions = {
@@ -32,8 +33,8 @@ type D = {
 export function Editor() {
     const [doc, setDoc] = useState<null|Automerge.Doc<D>>(null);
     let docId = window.location.hash.replace(/^#/, '')
-    let client: Client<D>
-
+    const [wsClient, setClient] = useState<null|Client<D>>(null)
+    const monacoEditor = useRef<any>()
     useEffect(()=>{
         const setUp = async ()=> {
             let binary = await localforage.getItem<Uint8Array>(docId)
@@ -46,8 +47,8 @@ export function Editor() {
                     doc.text = new Automerge.Text()
             })
         }    
-            setDoc(doc);
-            client = new Client(doc, remoteChange)
+            setDoc(doc)
+            setClient(new Client(doc, remoteChange))
         }
         setUp()
     }, [])
@@ -57,14 +58,15 @@ export function Editor() {
 
 
     const editorDidMount: EditorDidMount = (editor) => {
-        MonacoServices.install(monaco as any);
+        MonacoServices.install(monaco as any)
         if (editor && editor.getModel()) {
-            const editorModel = editor.getModel();
+            const editorModel = editor.getModel()
             if (editorModel) {
-                editorModel.setValue(doc.text.toString());
+                editorModel.setValue(doc.text.toString())
             }
         }
-        editor.focus();
+        editor.focus()
+        monacoEditor.current = editor
     };
 
     const onChange = (newCode: string, event: monaco.editor.IModelContentChangedEvent) => {
@@ -77,13 +79,14 @@ export function Editor() {
         let binary = Automerge.save(newDoc)
         setDoc(newDoc)
         localforage.setItem(docId, binary)  
-        client.localChange(newDoc)
+        wsClient.localChange(newDoc)
     };
 
     function remoteChange(doc: Automerge.Doc.<D>) {
         setDoc(doc)
         let binary = Automerge.save(doc)
-        localforage.setItem(docId, binary)   
+        localforage.setItem(docId, binary) 
+        monacoEditor.current.getModel().setValue(doc.text.toString())  
     }
 
     return (
