@@ -1,5 +1,4 @@
 import events from 'events';
-import { createHash } from 'crypto';
 import * as Automerge from "@automerge/automerge";
 
 type D = { 
@@ -35,7 +34,7 @@ export default class Client<T> extends events.EventEmitter {
       if (this.client.readyState === this.client.OPEN) {
         this.open = true
         this.emit('open')
-        this.updatePeers(this.document)
+        this.updatePeers()
       }
     };
 
@@ -46,40 +45,39 @@ export default class Client<T> extends events.EventEmitter {
     };
 
     this.client.onmessage = (e) => {
-      debugger
       console.log('received event', e)
-      //@ts-ignore
       let msg = new Uint8Array(e.data);
-      //@ts-ignore
       let [ newDoc, newSyncState,  ] = Automerge.receiveSyncMessage(this.document, this.syncState, msg)
       this.document = newDoc
-      this.syncState = newSyncState;
-      this.updatePeers(newDoc)
-      this.cb(newDoc)
+      this.syncState = newSyncState
+      this.cb(this.document)
+      this.updatePeers()
     }; 
     return this.client;
   }
 
-  localChange(newDoc: Automerge.Doc<D>) {
+  localChange(newDoc: Automerge.Doc<D>, sendUpdatePeersMessage: boolean) {
     this.document = newDoc
-    if (!this.open) {
-      this.once('open', () => this.updatePeers(newDoc))
-      return
+    if(sendUpdatePeersMessage) {
+      if (!this.open) {
+        this.once('open', () => this.updatePeers())
+        return
+      }
+      this.updatePeers()
     }
-    this.updatePeers(newDoc)
   }
 
-  updatePeers(newDoc: Automerge.Doc<D>) {
-    let [nextSyncState, msg] = Automerge.generateSyncMessage(
-      newDoc,
-      this.syncState
-    );
-    this.syncState = nextSyncState
-    if (msg) {
-      console.log('sending sync msg')
-      this.client.send(msg)
-    } 
-  }
+  updatePeers() {
+      let [nextSyncState, msg] = Automerge.generateSyncMessage(
+        this.document,
+        this.syncState
+      );
+      this.syncState = nextSyncState
+      console.log('generated msg', msg)
+      if(msg)
+        this.client.send(msg)
+    }
+  
 
   close() {
     console.log('Websocket client closed.')

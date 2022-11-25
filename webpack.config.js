@@ -84,9 +84,7 @@ module.exports = (env, argv) => {
                 filename: 'index.html',
                 excludeChunks: ['notFound']
             }),
-            new MonacoWebpackPlugin({
-                languages: ['json', 'yaml']
-            }),
+            new MonacoWebpackPlugin(),
             new webpack.ProvidePlugin({
                 process: 'process/browser',
             }),
