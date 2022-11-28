@@ -1,16 +1,12 @@
 import events from 'events'
 import * as Automerge from "@automerge/automerge"
 
-type D = {
-  text: Automerge.Text
-}
-
 export default class Client<T> extends events.EventEmitter {
   open: boolean = false
   syncState: Automerge.SyncState
   client: WebSocket
   documentId: string
-  document: Automerge.Doc<D>
+  document: Automerge.Doc<T>
   cb: Function
   
   syncStates = new Map<string, Automerge.SyncState>()
@@ -19,7 +15,7 @@ export default class Client<T> extends events.EventEmitter {
     super()
     this.syncState = Automerge.initSyncState()
     this.client = this._createClient()
-    this.document = doc
+    this.document = doc 
     this.cb = cb
   }
 
