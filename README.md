@@ -6,6 +6,9 @@ To run:
 
 You can then visit the app at http://0.0.0.0:9000.
 
-Note that this client expects a WebSocket Server to be available at http://localhost:3000. Running the applicatio with out the WebSocket Server will surface errors in the web console, but the content will save successfully and merge when WebSocket server is again available.
+This project is intended to work with https://github.com/apeshimam/websockets-server-ts/tree/main
+
+When the client and server are connected, the this client will communicate with one or more Automerge peers. Additionally, all changes to the code edtior are persisted to local state using LocalForage. If the WebSocket Server is unavailable, the user can continue to use the application and have their edits persisted. Once the user reconnects, the clients will all merge any changes. This is accomplished using Automerge.
+
 
 You can use the server available at https://github.com/apeshimam/websockets-server-ts
