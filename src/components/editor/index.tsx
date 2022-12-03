@@ -5,7 +5,6 @@ import { MonacoServices } from "monaco-languageclient";
 import * as Automerge from "@automerge/automerge";
 import localforage from "localforage";
 import Client from "../../WebSocketClient";
-import D from "../../WebSocketClient";
 
 type D = {
   text: Automerge.Text;
@@ -32,13 +31,13 @@ const MONACO_OPTIONS: monaco.editor.IEditorConstructionOptions = {
 
 export function Editor() {
   const [doc, setDoc] = useState<null | Automerge.Doc<D>>(null);
-  let docId = window.location.hash.replace(/^#/, "");
   const wsClient = useRef<null | Client<D>>(null);
   const monacoEditor = useRef<any>();
+  const STORAGE_KEY = "_document";
 
   useEffect(() => {
     const setUp = async () => {
-      let binary = await localforage.getItem<Uint8Array>(docId);
+      let binary = await localforage.getItem<Uint8Array>(STORAGE_KEY);
       let doc: Automerge.Doc<D>;
 
       if (binary) {
@@ -86,7 +85,7 @@ export function Editor() {
       });
       let binary = Automerge.save(newDoc);
       setDoc(newDoc);
-      localforage.setItem(docId, binary);
+      localforage.setItem(STORAGE_KEY, binary);
       wsClient.current.localChange(newDoc);
     }
   };
@@ -94,7 +93,7 @@ export function Editor() {
   function remoteChange(doc: Automerge.Doc<D>) {
     setDoc(doc);
     let binary = Automerge.save(doc);
-    localforage.setItem(docId, binary);
+    localforage.setItem(STORAGE_KEY, binary);
     let currentValue = monacoEditor.current.getModel().getValue();
     if (currentValue != doc.text.toString())
       monacoEditor.current.getModel().setValue(doc.text.toString());
