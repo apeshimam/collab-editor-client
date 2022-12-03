@@ -11,7 +11,7 @@ export default class Client<T> extends events.EventEmitter {
 
   syncStates = new Map<string, Automerge.SyncState>();
 
-  constructor(doc: Automerge.Doc<D>, cb: Function) {
+  constructor(doc: Automerge.Doc<T>, cb: Function) {
     super();
     this.syncState = Automerge.initSyncState();
     this.client = this._createClient();
